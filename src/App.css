@@ -1,0 +1,663 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #1a1a1a;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+}
+
+.app {
+  min-height: 100vh;
+  background: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tab Bar */
+.tab-bar {
+  display: flex;
+  border-bottom: 0.5px solid #333;
+  background: #0f0f0f;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 14px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  background: #0f0f0f;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.tab-button.active {
+  color: #fff;
+  border-bottom-color: #00d9a3;
+}
+
+.tab-button:active {
+  background: #1a1a1a;
+}
+
+/* Tab Content */
+.tab-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+
+/* ===== TODAY'S LOG PAGE ===== */
+.today-log-page {
+  padding: 12px;
+}
+
+.countdown-badge {
+  background: linear-gradient(135deg, #2a2a3a 0%, #1a1a2a 100%);
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  border: 0.5px solid #404050;
+  text-align: center;
+}
+
+.countdown-label {
+  font-size: 12px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.countdown-number {
+  font-size: 32px;
+  font-weight: 600;
+  color: #00d9a3;
+}
+
+.exercises-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.exercise-card {
+  background: #2a2a2a;
+  border-radius: 12px;
+  padding: 14px;
+  border: 0.5px solid #404050;
+}
+
+.exercise-name {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  color: #fff;
+}
+
+.set-row {
+  display: grid;
+  grid-template-columns: 50px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 0.5px solid #404050;
+}
+
+.set-row:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.set-label {
+  font-size: 13px;
+  color: #888;
+  font-weight: 500;
+}
+
+.controls-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-pair {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-btn {
+  width: 36px;
+  height: 36px;
+  border: 0.5px solid #505050;
+  background: #1a1a1a;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  active: background #333;
+}
+
+.control-btn:active {
+  background: #333;
+}
+
+.value-display {
+  width: 50px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.checkbox-btn {
+  width: 50px;
+  height: 50px;
+  border: 2.5px solid #00d9a3;
+  background: transparent;
+  border-radius: 8px;
+  color: #00d9a3;
+  font-size: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.checkbox-btn:active {
+  background: #00d9a3;
+  color: #0f0f0f;
+}
+
+.checkbox-btn.done {
+  background: #333;
+  border-color: #555;
+  color: #888;
+  opacity: 0.6;
+}
+
+.checkbox-btn.done::after {
+  content: '';
+  text-decoration: line-through;
+}
+
+.rest-day-message {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.rest-day-message h2 {
+  font-size: 24px;
+  margin-bottom: 12px;
+  color: #00d9a3;
+}
+
+.rest-day-message p {
+  font-size: 16px;
+  color: #888;
+}
+
+/* ===== SETTINGS PAGE ===== */
+.settings-page {
+  padding: 16px;
+}
+
+.settings-page h1 {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.settings-subtitle {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.days-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.day-section {
+  background: #2a2a2a;
+  border-radius: 12px;
+  padding: 14px;
+  border: 0.5px solid #404050;
+}
+
+.day-section.rest-day {
+  opacity: 0.6;
+  background: #1a1a1a;
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.day-header h3 {
+  font-size: 18px;
+  color: #fff;
+}
+
+.rest-badge {
+  font-size: 11px;
+  background: #404050;
+  color: #888;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.rest-info {
+  font-size: 14px;
+  color: #666;
+}
+
+.exercises-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.exercise-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.exercise-input {
+  flex: 1;
+  background: #1a1a1a;
+  border: 0.5px solid #505050;
+  color: #e0e0e0;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.exercise-input::placeholder {
+  color: #666;
+}
+
+.remove-btn {
+  background: #404050;
+  color: #e0e0e0;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.remove-btn:active {
+  background: #505050;
+}
+
+.add-exercise-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.add-btn {
+  background: #00d9a3;
+  color: #0f0f0f;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-btn:active {
+  opacity: 0.8;
+}
+
+.cancel-btn {
+  background: #404050;
+  color: #e0e0e0;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.cancel-btn:active {
+  background: #505050;
+}
+
+.add-exercise-btn {
+  width: 100%;
+  background: #1a1a1a;
+  border: 1px dashed #505050;
+  color: #00d9a3;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.add-exercise-btn:active {
+  background: #2a2a2a;
+}
+
+/* ===== COMPARISON PAGE ===== */
+.comparison-page {
+  padding: 16px;
+}
+
+.comparison-page h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+.chart-container {
+  background: #2a2a2a;
+  border-radius: 12px;
+  padding: 14px;
+  border: 0.5px solid #404050;
+  margin-bottom: 20px;
+}
+
+.chart-container h2 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+
+.table-container {
+  background: #2a2a2a;
+  border-radius: 12px;
+  padding: 14px;
+  border: 0.5px solid #404050;
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+
+.table-container h2 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.data-table th {
+  background: #1a1a1a;
+  padding: 10px;
+  text-align: left;
+  border-bottom: 0.5px solid #404050;
+  color: #888;
+  font-weight: 500;
+}
+
+.data-table td {
+  padding: 10px;
+  border-bottom: 0.5px solid #404050;
+  color: #e0e0e0;
+}
+
+.data-table tr.positive {
+  background: #1a2a1a;
+}
+
+.data-table tr.negative {
+  background: #2a1a1a;
+}
+
+.data-table td.up {
+  color: #00d9a3;
+  font-weight: 600;
+}
+
+.data-table td.down {
+  color: #d90000;
+  font-weight: 600;
+}
+
+.edit-log-btn {
+  background: #00d9a3;
+  color: #0f0f0f;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.edit-log-btn:active {
+  opacity: 0.8;
+}
+
+.no-data {
+  color: #666;
+  text-align: center;
+  padding: 20px;
+  font-size: 14px;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #2a2a2a;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 90%;
+  border: 0.5px solid #404050;
+}
+
+.modal h3 {
+  font-size: 18px;
+  margin-bottom: 16px;
+  color: #fff;
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.modal-content label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  color: #e0e0e0;
+}
+
+.modal-input {
+  background: #1a1a1a;
+  border: 0.5px solid #505050;
+  color: #e0e0e0;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.save-btn {
+  flex: 1;
+  background: #00d9a3;
+  color: #0f0f0f;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.save-btn:active {
+  opacity: 0.8;
+}
+
+/* ===== MEASUREMENTS PAGE ===== */
+.measurements-page {
+  padding: 16px;
+}
+
+.measurements-page h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+.form-section {
+  margin-bottom: 20px;
+}
+
+.measurement-form {
+  background: #2a2a2a;
+  border-radius: 12px;
+  padding: 14px;
+  border: 0.5px solid #404050;
+}
+
+.measurement-form h3 {
+  font-size: 16px;
+  margin-bottom: 16px;
+  color: #fff;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  font-size: 14px;
+  color: #e0e0e0;
+  font-weight: 500;
+}
+
+.form-input {
+  background: #1a1a1a;
+  border: 0.5px solid #505050;
+  color: #e0e0e0;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.form-input::placeholder {
+  color: #666;
+}
+
+.custom-fields {
+  background: #1a1a1a;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 0.5px solid #404050;
+}
+
+.custom-fields h4 {
+  font-size: 14px;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.add-field-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 0.5px solid #404050;
+}
+
+.small-btn {
+  background: #00d9a3;
+  color: #0f0f0f;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.form-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .set-row {
+    grid-template-columns: 45px 1fr auto;
+    gap: 10px;
+  }
+
+  .control-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .checkbox-btn {
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
+  }
+
+  .value-display {
+    width: 45px;
+    font-size: 16px;
+  }
+
+  .countdown-number {
+    font-size: 28px;
+  }
+}
