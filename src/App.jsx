@@ -35,6 +35,12 @@ export default function App() {
     loadData()
   }, [])
 
+  // Refresh logs when they change (triggered by TodayLog onSave)
+  const refreshLogs = async () => {
+    const logsData = await db.logs.toArray()
+    setLogs(logsData)
+  }
+
   const handleExercisesUpdate = async (updatedExercises) => {
     await db.exercises.clear()
     const toInsert = []
@@ -45,12 +51,6 @@ export default function App() {
     })
     await db.exercises.bulkAdd(toInsert)
     setExercises(updatedExercises)
-  }
-
-  const handleLogSave = async (newLog) => {
-    await db.logs.add(newLog)
-    const updatedLogs = await db.logs.toArray()
-    setLogs(updatedLogs)
   }
 
   const handleMeasurementSave = async (newMeasurement) => {
@@ -80,7 +80,10 @@ export default function App() {
         </button>
         <button
           className={`tab-button ${activeTab === 'trends' ? 'active' : ''}`}
-          onClick={() => setActiveTab('trends')}
+          onClick={() => {
+            setActiveTab('trends')
+            refreshLogs()
+          }}
         >
           Trends
         </button>
@@ -93,7 +96,7 @@ export default function App() {
       </div>
 
       <div className="tab-content">
-        {activeTab === 'today' && <TodayLog exercises={exercises} logs={logs} onSave={handleLogSave} />}
+        {activeTab === 'today' && <TodayLog exercises={exercises} logs={logs} onSave={refreshLogs} />}
         {activeTab === 'settings' && <Settings exercises={exercises} onUpdate={handleExercisesUpdate} />}
         {activeTab === 'trends' && <Comparison logs={logs} exercises={exercises} />}
         {activeTab === 'measurements' && <Measurements measurements={measurements} onSave={handleMeasurementSave} />}
