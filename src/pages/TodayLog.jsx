@@ -119,26 +119,42 @@ export default function TodayLog({ exercises, logs, onSave }) {
   }
 
   const saveCurrentLog = async () => {
-    // Delete today's logs first to prevent duplicates
-    await db.logs.where('date').equals(todayDateStr).delete()
-    
-    const logsToSave = []
-    Object.entries(sets).forEach(([exerciseName, setSets]) => {
-      setSets.forEach(set => {
-        logsToSave.push({
-          date: todayDateStr,
-          exerciseName,
-          setNum: set.setNum,
-          weight: set.weight,
-          reps: set.reps,
-          done: set.done,
-          timestamp: new Date().toISOString()
+    try {
+      Object.entries(sets).forEach(async ([exerciseName, setSets]) => {
+        setSets.forEach(async (set) => {
+          // Create unique ID for this log entry
+          const logId = `${todayDateStr}-${exerciseName}-${set.setNum}`
+          
+          const logEntry = {
+            id: logId,
+            date: todayDateStr,
+            exerciseName,
+            setNum: set.setNum,
+            weight: set.weight,
+            reps: set.reps,
+            done: set.done,
+            timestamp: new Date().toISOString()
+          }
+
+          // Check if entry exists
+          const existing = await db.logs.get(logId)
+          
+          if (existing) {
+            // Update existing entry
+            await db.logs.update(logId, logEntry)
+          } else {
+            // Add new entry
+            await db.logs.add(logEntry)
+          }
         })
       })
-    })
 
-    for (const log of logsToSave) {
-      await onSave(log)
+      // Trigger parent to refresh logs
+      if (onSave) {
+        onSave()
+      }
+    } catch (error) {
+      console.error('Error saving log:', error)
     }
   }
 
