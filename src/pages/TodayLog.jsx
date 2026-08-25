@@ -12,6 +12,7 @@ export default function TodayLog({ exercises, logs, onSave }) {
 
   const [sets, setSets] = useState({})
   const [daysUntilWedding, setDaysUntilWedding] = useState(0)
+  const [saveTimer, setSaveTimer] = useState(null)
 
   // Calculate days until wedding (Nov 25)
   useEffect(() => {
@@ -57,6 +58,19 @@ export default function TodayLog({ exercises, logs, onSave }) {
     }
   }, [todayExercises, todayDateStr])
 
+  // Auto-save on debounce
+  useEffect(() => {
+    if (saveTimer) clearTimeout(saveTimer)
+    
+    const timer = setTimeout(() => {
+      saveCurrentLog()
+    }, 1000)
+    
+    setSaveTimer(timer)
+
+    return () => clearTimeout(timer)
+  }, [sets])
+
   const handleWeightChange = (exerciseName, setNum, delta) => {
     setSets(prev => ({
       ...prev,
@@ -76,15 +90,25 @@ export default function TodayLog({ exercises, logs, onSave }) {
   }
 
   const handleToggleDone = (exerciseName, setNum) => {
-    setSets(prev => ({
-      ...prev,
-      [exerciseName]: prev[exerciseName].map(s =>
-        s.setNum === setNum ? { ...s, done: !s.done } : s
-      )
-    }))
+    setSets(prev => {
+      const updated = { ...prev }
+      const exerciseSets = updated[exerciseName]
+      const setIndex = exerciseSets.findIndex(s => s.setNum === setNum)
+      
+      if (setIndex !== -1) {
+        const newSet = { ...exerciseSets[setIndex] }
+        newSet.done = !newSet.done
+        exerciseSets[setIndex] = newSet
+      }
+      
+      return updated
+    })
   }
 
-  const handleSaveLog = async () => {
+  const saveCurrentLog = async () => {
+    // Delete today's logs first to prevent duplicates
+    await db.logs.where('date').equals(todayDateStr).delete()
+    
     const logsToSave = []
     Object.entries(sets).forEach(([exerciseName, setSets]) => {
       setSets.forEach(set => {
@@ -104,10 +128,6 @@ export default function TodayLog({ exercises, logs, onSave }) {
       await onSave(log)
     }
   }
-
-  useEffect(() => {
-    handleSaveLog()
-  }, [sets])
 
   if (isRestDay) {
     return (
@@ -137,7 +157,14 @@ export default function TodayLog({ exercises, logs, onSave }) {
             <div className="exercise-name">{exercise.name}</div>
 
             {sets[exercise.name] && sets[exercise.name].map(set => (
-              <div key={`${exercise.name}-set-${set.setNum}`} className="set-row">
+              <div 
+                key={`${exercise.name}-set-${set.setNum}`} 
+                className={`set-row ${set.done ? 'completed' : ''}`}
+                style={{
+                  opacity: set.done ? 0.5 : 1,
+                  textDecoration: set.done ? 'line-through' : 'none'
+                }}
+              >
                 <div className="set-label">Set {set.setNum}</div>
 
                 <div className="controls-group">
