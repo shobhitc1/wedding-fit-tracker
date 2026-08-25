@@ -184,7 +184,7 @@ export default function Comparison({ logs, exercises }) {
       {/* Raw Log Table */}
       <div className="table-container">
         <h2>All Logged Data</h2>
-        {logs.length > 0 ? (
+        {logs && logs.length > 0 ? (
           <table className="data-table">
             <thead>
               <tr>
@@ -197,8 +197,8 @@ export default function Comparison({ logs, exercises }) {
               </tr>
             </thead>
             <tbody>
-              {logs.map((log, idx) => (
-                <tr key={idx}>
+              {logs.sort((a, b) => new Date(b.date) - new Date(a.date)).map((log, idx) => (
+                <tr key={`${log.date}-${log.exerciseName}-${log.setNum}-${idx}`}>
                   <td>{log.date}</td>
                   <td>{log.exerciseName}</td>
                   <td>{log.setNum}</td>
