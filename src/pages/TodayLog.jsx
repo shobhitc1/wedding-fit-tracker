@@ -26,10 +26,22 @@ export default function TodayLog({ exercises, logs, onSave }) {
   // Load today's log or get last values
   useEffect(() => {
     const loadTodayData = async () => {
+      // Always initialize all exercises first
+      const initialSets = {}
+      for (const ex of todayExercises) {
+        const lastLog = await db.logs.where('exerciseName').equals(ex.name).reverse().first()
+        initialSets[ex.name] = [
+          { weight: lastLog?.weight || 0, reps: lastLog?.reps || 0, done: false, setNum: 1 },
+          { weight: lastLog?.weight || 0, reps: lastLog?.reps || 0, done: false, setNum: 2 },
+          { weight: lastLog?.weight || 0, reps: lastLog?.reps || 0, done: false, setNum: 3 }
+        ]
+      }
+
+      // Now check if there are today's logs and update
       const todayLog = await db.logs.where('date').equals(todayDateStr).toArray()
       
       if (todayLog.length > 0) {
-        // Use today's data - reconstruct with exactly 3 sets per exercise
+        // Update with today's data
         const setsByExercise = {}
         todayLog.forEach(log => {
           if (!setsByExercise[log.exerciseName]) {
@@ -43,27 +55,15 @@ export default function TodayLog({ exercises, logs, onSave }) {
           }
         })
 
-        // Convert to array with exactly 3 sets
-        const finalSets = {}
+        // Merge with initialized sets
         Object.entries(setsByExercise).forEach(([exerciseName, setsByNum]) => {
-          finalSets[exerciseName] = [1, 2, 3].map(setNum =>
+          initialSets[exerciseName] = [1, 2, 3].map(setNum =>
             setsByNum[setNum] || { weight: 0, reps: 0, done: false, setNum }
           )
         })
-        setSets(finalSets)
-      } else {
-        // Get last logged values for each exercise
-        const newSets = {}
-        for (const ex of todayExercises) {
-          const lastLog = await db.logs.where('exerciseName').equals(ex.name).reverse().first()
-          newSets[ex.name] = [
-            { weight: lastLog?.weight || 0, reps: lastLog?.reps || 0, done: false, setNum: 1 },
-            { weight: lastLog?.weight || 0, reps: lastLog?.reps || 0, done: false, setNum: 2 },
-            { weight: lastLog?.weight || 0, reps: lastLog?.reps || 0, done: false, setNum: 3 }
-          ]
-        }
-        setSets(newSets)
       }
+
+      setSets(initialSets)
     }
 
     if (todayExercises.length > 0) {
