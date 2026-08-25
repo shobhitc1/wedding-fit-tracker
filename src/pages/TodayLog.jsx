@@ -29,15 +29,28 @@ export default function TodayLog({ exercises, logs, onSave }) {
       const todayLog = await db.logs.where('date').equals(todayDateStr).toArray()
       
       if (todayLog.length > 0) {
-        // Use today's data
-        const logsByExercise = {}
+        // Use today's data - reconstruct with exactly 3 sets per exercise
+        const setsByExercise = {}
         todayLog.forEach(log => {
-          if (!logsByExercise[log.exerciseName]) {
-            logsByExercise[log.exerciseName] = []
+          if (!setsByExercise[log.exerciseName]) {
+            setsByExercise[log.exerciseName] = {}
           }
-          logsByExercise[log.exerciseName].push(log)
+          setsByExercise[log.exerciseName][log.setNum] = {
+            weight: log.weight,
+            reps: log.reps,
+            done: log.done,
+            setNum: log.setNum
+          }
         })
-        setSets(logsByExercise)
+
+        // Convert to array with exactly 3 sets
+        const finalSets = {}
+        Object.entries(setsByExercise).forEach(([exerciseName, setsByNum]) => {
+          finalSets[exerciseName] = [1, 2, 3].map(setNum =>
+            setsByNum[setNum] || { weight: 0, reps: 0, done: false, setNum }
+          )
+        })
+        setSets(finalSets)
       } else {
         // Get last logged values for each exercise
         const newSets = {}
