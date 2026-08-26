@@ -2,9 +2,9 @@ import Dexie from 'dexie'
 
 export const db = new Dexie('WeddingFitTrackerDB')
 
-db.version(1).stores({
+db.version(2).stores({
   exercises: '++id, day',
-  logs: '++id, date, exerciseName',
+  logs: 'id, date, exerciseName',
   measurements: '++id, date'
 })
 
