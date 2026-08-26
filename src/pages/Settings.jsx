@@ -33,7 +33,16 @@ export default function Settings({ exercises, onUpdate }) {
     <div className="settings-page">
       <h1>Settings</h1>
       <p className="settings-subtitle">Edit your exercises by day</p>
-
+      <button
+        style={{ background: '#d90000', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', marginBottom: '16px', fontSize: '14px', fontWeight: 600 }}
+        onClick={async () => {
+          const { db } = await import('../db.js')
+          await db.logs.clear()
+          alert('All logs cleared!')
+        }}
+      >
+        ⚠️ Clear All Logged Data (one-time cleanup)
+      </button>
       <div className="days-container">
         {days.map(day => {
           const dayExercises = exercises[day] || []
