@@ -120,11 +120,10 @@ export default function TodayLog({ exercises, logs, onSave }) {
 
   const saveCurrentLog = async () => {
     try {
-      Object.entries(sets).forEach(async ([exerciseName, setSets]) => {
-        setSets.forEach(async (set) => {
-          // Create unique ID for this log entry
+      for (const [exerciseName, setSets] of Object.entries(sets)) {
+        for (const set of setSets) {
           const logId = `${todayDateStr}-${exerciseName}-${set.setNum}`
-          
+
           const logEntry = {
             id: logId,
             date: todayDateStr,
@@ -136,20 +135,16 @@ export default function TodayLog({ exercises, logs, onSave }) {
             timestamp: new Date().toISOString()
           }
 
-          // Check if entry exists
           const existing = await db.logs.get(logId)
-          
+
           if (existing) {
-            // Update existing entry
             await db.logs.update(logId, logEntry)
           } else {
-            // Add new entry
             await db.logs.add(logEntry)
           }
-        })
-      })
+        }
+      }
 
-      // Trigger parent to refresh logs
       if (onSave) {
         onSave()
       }
@@ -157,8 +152,7 @@ export default function TodayLog({ exercises, logs, onSave }) {
       console.error('Error saving log:', error)
     }
   }
-
-  if (isRestDay) {
+    if (isRestDay) {
     return (
       <div className="today-log-page">
         <div className="countdown-badge">
