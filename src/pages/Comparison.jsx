@@ -6,99 +6,110 @@ export default function Comparison({ logs, exercises }) {
   const [editingLog, setEditingLog] = useState(null)
   const [editValues, setEditValues] = useState({})
 
-  // Group logs by exercise and week
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+  // Group logs by exercise and week (for graph/table above)
   const groupedData = useMemo(() => {
     const grouped = {}
+    logs.forEach(log => {
+      if (!grouped[log.exerciseName]) grouped[log.exerciseName] = {}
+      const logDate = new Date(log.date)
+      const weekStart = new Date(logDate)
+      weekStart.setDate(logDate.getDate() - logDate.getDay())
+      const weekKey = weekStart.toISOString().split('T')[0]
+      if (!grouped[log.exerciseName][weekKey]) grouped[log.exerciseName][weekKey] = []
+      grouped[log.exerciseName][weekKey].push(log)
+    })
+    return grouped
+  }, [logs])
+
+  const volumeData = useMemo(() => {
+    const data = {}
+    Object.entries(groupedData).forEach(([exerciseName, weeks]) => {
+      data[exerciseName] = []
+      Object.entries(weeks)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .forEach(([week, logsInWeek]) => {
+          const totalVolume = logsInWeek.reduce((sum, log) => sum + (log.weight * log.reps), 0)
+          data[exerciseName].push({ week: week.split('-').slice(1).join('-'), volume: totalVolume })
+        })
+    })
+    return data
+  }, [groupedData])
+
+  const chartData = useMemo(() => {
+    if (Object.keys(volumeData).length === 0) return []
+    const weeks = new Set()
+    Object.values(volumeData).forEach(exWeeks => exWeeks.forEach(item => weeks.add(item.week)))
+    const sortedWeeks = Array.from(weeks).sort()
+    return sortedWeeks.map(week => {
+      const dataPoint = { week }
+      Object.entries(volumeData).forEach(([exerciseName, exWeeks]) => {
+        const weekData = exWeeks.find(w => w.week === week)
+        dataPoint[exerciseName] = weekData?.volume || 0
+      })
+      return dataPoint
+    })
+  }, [volumeData])
+
+  const percentageChange = useMemo(() => {
+    const changes = []
+    Object.entries(volumeData).forEach(([exerciseName, weeks]) => {
+      if (weeks.length >= 2) {
+        const lastWeek = weeks[weeks.length - 1]
+        const prevWeek = weeks[weeks.length - 2]
+        const change = prevWeek.volume === 0 ? '0.0' : ((lastWeek.volume - prevWeek.volume) / prevWeek.volume * 100).toFixed(1)
+        changes.push({ exercise: exerciseName, lastWeek: lastWeek.volume, prevWeek: prevWeek.volume, changePercent: change })
+      }
+    })
+    return changes
+  }, [volumeData])
+
+  // ----- NEW: Week -> Day grouped raw log table -----
+  const weeklyLogTable = useMemo(() => {
+    if (!logs || logs.length === 0) return []
+
+    // Find earliest date to anchor Week 1
+    const sortedDates = [...logs].map(l => l.date).sort()
+    const firstDate = new Date(sortedDates[0])
+    const firstWeekStart = new Date(firstDate)
+    firstWeekStart.setDate(firstDate.getDate() - firstDate.getDay()) // Sunday start
+
+    const weeksMap = {}
 
     logs.forEach(log => {
-      if (!grouped[log.exerciseName]) {
-        grouped[log.exerciseName] = {}
-      }
-
       const logDate = new Date(log.date)
       const weekStart = new Date(logDate)
       weekStart.setDate(logDate.getDate() - logDate.getDay())
       const weekKey = weekStart.toISOString().split('T')[0]
 
-      if (!grouped[log.exerciseName][weekKey]) {
-        grouped[log.exerciseName][weekKey] = []
-      }
-      grouped[log.exerciseName][weekKey].push(log)
+      if (!weeksMap[weekKey]) weeksMap[weekKey] = {}
+      const dayName = dayNames[logDate.getDay()]
+      if (!weeksMap[weekKey][dayName]) weeksMap[weekKey][dayName] = []
+      weeksMap[weekKey][dayName].push(log)
     })
 
-    return grouped
-  }, [logs])
+    const sortedWeekKeys = Object.keys(weeksMap).sort()
+    const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
-  // Calculate volume per exercise per week
-  const volumeData = useMemo(() => {
-    const data = {}
-
-    Object.entries(groupedData).forEach(([exerciseName, weeks]) => {
-      data[exerciseName] = []
-
-      Object.entries(weeks)
-        .sort(([weekA], [weekB]) => weekA.localeCompare(weekB))
-        .forEach(([week, logsInWeek]) => {
-          const totalVolume = logsInWeek.reduce((sum, log) => {
-            return sum + (log.weight * log.reps * 3) // 3 sets
-          }, 0)
-
-          data[exerciseName].push({
-            week: week.split('-').slice(1).join('-'),
-            volume: totalVolume,
-            exerciseName
+    return sortedWeekKeys.map((weekKey, idx) => {
+      const daysInWeek = dayOrder
+        .filter(day => weeksMap[weekKey][day])
+        .map(day => ({
+          day,
+          entries: weeksMap[weekKey][day].sort((a, b) => {
+            if (a.exerciseName !== b.exerciseName) return a.exerciseName.localeCompare(b.exerciseName)
+            return a.setNum - b.setNum
           })
-        })
-    })
+        }))
 
-    return data
-  }, [groupedData])
-
-  // Prepare graph data (combine all exercises)
-  const chartData = useMemo(() => {
-    if (Object.keys(volumeData).length === 0) return []
-
-    const weeks = new Set()
-    Object.values(volumeData).forEach(exerciseWeeks => {
-      exerciseWeeks.forEach(item => weeks.add(item.week))
-    })
-
-    const sortedWeeks = Array.from(weeks).sort()
-    const result = []
-
-    sortedWeeks.forEach(week => {
-      const dataPoint = { week }
-      Object.entries(volumeData).forEach(([exerciseName, weeks]) => {
-        const weekData = weeks.find(w => w.week === week)
-        dataPoint[exerciseName] = weekData?.volume || 0
-      })
-      result.push(dataPoint)
-    })
-
-    return result
-  }, [volumeData])
-
-  // Calculate week-over-week % change
-  const percentageChange = useMemo(() => {
-    const changes = []
-
-    Object.entries(volumeData).forEach(([exerciseName, weeks]) => {
-      if (weeks.length >= 2) {
-        const lastWeek = weeks[weeks.length - 1]
-        const prevWeek = weeks[weeks.length - 2]
-        const change = ((lastWeek.volume - prevWeek.volume) / prevWeek.volume * 100).toFixed(1)
-
-        changes.push({
-          exercise: exerciseName,
-          lastWeek: lastWeek.volume,
-          prevWeek: prevWeek.volume,
-          changePercent: change
-        })
+      return {
+        weekNumber: idx + 1,
+        weekStartLabel: weekKey,
+        days: daysInWeek
       }
     })
-
-    return changes
-  }, [volumeData])
+  }, [logs])
 
   const handleEditLog = (log) => {
     setEditingLog(log)
@@ -107,13 +118,12 @@ export default function Comparison({ logs, exercises }) {
 
   const handleSaveEdit = async () => {
     if (!editingLog) return
-
     await db.logs.update(editingLog.id, {
       weight: editValues.weight,
       reps: editValues.reps
     })
-
     setEditingLog(null)
+    window.location.reload() // simple refresh to reflect edit everywhere
   }
 
   const colors = ['#00d9a3', '#00a3d9', '#d9a300', '#a300d9', '#d90000']
@@ -124,7 +134,7 @@ export default function Comparison({ logs, exercises }) {
 
       {/* Volume Trend Graph */}
       <div className="chart-container">
-        <h2>Volume Trend (Weight × Reps × 3 Sets)</h2>
+        <h2>Volume Trend (Weight × Reps)</h2>
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>
@@ -158,14 +168,14 @@ export default function Comparison({ logs, exercises }) {
             <thead>
               <tr>
                 <th>Exercise</th>
-                <th>Last Week Volume</th>
-                <th>Prev Week Volume</th>
+                <th>Last Week</th>
+                <th>Prev Week</th>
                 <th>Change %</th>
               </tr>
             </thead>
             <tbody>
               {percentageChange.map((item, idx) => (
-                <tr key={idx} className={item.changePercent > 0 ? 'positive' : 'negative'}>
+                <tr key={idx}>
                   <td>{item.exercise}</td>
                   <td>{Math.round(item.lastWeek)}</td>
                   <td>{Math.round(item.prevWeek)}</td>
@@ -181,41 +191,50 @@ export default function Comparison({ logs, exercises }) {
         )}
       </div>
 
-      {/* Raw Log Table */}
+      {/* Weekly Grouped Log Table */}
       <div className="table-container">
         <h2>All Logged Data</h2>
-        {logs && logs.length > 0 ? (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Exercise</th>
-                <th>Set</th>
-                <th>Weight (kg)</th>
-                <th>Reps</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.sort((a, b) => new Date(b.date) - new Date(a.date)).map((log, idx) => (
-                <tr key={`${log.date}-${log.exerciseName}-${log.setNum}-${idx}`}>
-                  <td>{log.date}</td>
-                  <td>{log.exerciseName}</td>
-                  <td>{log.setNum}</td>
-                  <td>{log.weight}</td>
-                  <td>{log.reps}</td>
-                  <td>
-                    <button
-                      className="edit-log-btn"
-                      onClick={() => handleEditLog(log)}
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
+        {weeklyLogTable.length > 0 ? (
+          weeklyLogTable.map(week => (
+            <div key={week.weekStartLabel} style={{ marginBottom: '24px' }}>
+              <h3 style={{ color: '#00d9a3', fontSize: '16px', margin: '16px 0 8px' }}>
+                Week {week.weekNumber}
+              </h3>
+              {week.days.map(({ day, entries }) => (
+                <div key={day} style={{ marginBottom: '12px' }}>
+                  <div style={{ color: '#fff', fontWeight: 600, fontSize: '14px', marginBottom: '6px' }}>
+                    {day}
+                  </div>
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Exercise</th>
+                        <th>Set</th>
+                        <th>Weight (kg)</th>
+                        <th>Reps</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {entries.map((log, idx) => (
+                        <tr key={`${log.date}-${log.exerciseName}-${log.setNum}-${idx}`}>
+                          <td>{log.exerciseName}</td>
+                          <td>{log.setNum}</td>
+                          <td>{log.weight}</td>
+                          <td>{log.reps}</td>
+                          <td>
+                            <button className="edit-log-btn" onClick={() => handleEditLog(log)}>
+                              Edit
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          ))
         ) : (
           <p className="no-data">No logs yet.</p>
         )}
