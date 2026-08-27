@@ -19,7 +19,7 @@ function formatDayLabel(date) {
   return `${dayName}, ${monthDay}`
 }
 
-export default function Comparison({ logs, exercises }) {
+export default function Comparison({ logs, exercises, onLogsChange }) {
   const [editingLog, setEditingLog] = useState(null)
   const [editValues, setEditValues] = useState({})
 
@@ -176,7 +176,9 @@ export default function Comparison({ logs, exercises }) {
     })
 
     setEditingLog(null)
-    window.location.reload()
+    if (onLogsChange) {
+    await onLogsChange()
+    }
   }
 
   const colors = ['#00d9a3', '#00a3d9', '#d9a300', '#a300d9', '#d90000']
