@@ -661,3 +661,81 @@ body {
     font-size: 28px;
   }
 }
+/* ===== TIMER PAGE ===== */
+.timer-page {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.timer-page h1 {
+  font-size: 24px;
+  margin-bottom: 24px;
+  color: #fff;
+  align-self: flex-start;
+}
+
+.timer-ring-container {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.timer-ring-container svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.timer-display {
+  font-size: 48px;
+  font-weight: 700;
+  z-index: 1;
+}
+
+.timer-adjust {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.timer-duration-label {
+  font-size: 20px;
+  font-weight: 600;
+  color: #e0e0e0;
+  min-width: 80px;
+  text-align: center;
+}
+
+.timer-buttons {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.timer-action-btn {
+  flex: 1;
+  padding: 16px;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.timer-start-btn {
+  background: #00d9a3;
+  color: #0f0f0f;
+}
+
+.timer-pause-btn {
+  background: #d97700;
+  color: #0f0f0f;
+}
