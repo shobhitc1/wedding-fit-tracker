@@ -98,7 +98,7 @@ export default function App() {
       <div className="tab-content">
         {activeTab === 'today' && <TodayLog exercises={exercises} logs={logs} onSave={refreshLogs} />}
         {activeTab === 'settings' && <Settings exercises={exercises} onUpdate={handleExercisesUpdate} />}
-        {activeTab === 'trends' && <Comparison logs={logs} exercises={exercises} />}
+        {activeTab === 'trends' && <Comparison logs={logs} exercises={exercises} onLogsChange={refreshLogs} />}
         {activeTab === 'measurements' && <Measurements measurements={measurements} onSave={handleMeasurementSave} />}
       </div>
     </div>
