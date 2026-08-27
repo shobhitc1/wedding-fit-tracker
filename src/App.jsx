@@ -4,6 +4,7 @@ import TodayLog from './pages/TodayLog'
 import Settings from './pages/Settings'
 import Comparison from './pages/Comparison'
 import Measurements from './pages/Measurements'
+import Timer from './pages/Timer'
 import './App.css'
 
 export default function App() {
@@ -13,7 +14,6 @@ export default function App() {
   const [measurements, setMeasurements] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Load data from Dexie on mount
   useEffect(() => {
     const loadData = async () => {
       const exercisesData = await db.exercises.toArray()
@@ -35,7 +35,6 @@ export default function App() {
     loadData()
   }, [])
 
-  // Refresh logs when they change (triggered by TodayLog onSave)
   const refreshLogs = async () => {
     const logsData = await db.logs.toArray()
     setLogs(logsData)
@@ -93,6 +92,12 @@ export default function App() {
         >
           Measure
         </button>
+        <button
+          className={`tab-button ${activeTab === 'timer' ? 'active' : ''}`}
+          onClick={() => setActiveTab('timer')}
+        >
+          Timer
+        </button>
       </div>
 
       <div className="tab-content">
@@ -100,6 +105,7 @@ export default function App() {
         {activeTab === 'settings' && <Settings exercises={exercises} onUpdate={handleExercisesUpdate} />}
         {activeTab === 'trends' && <Comparison logs={logs} exercises={exercises} onLogsChange={refreshLogs} />}
         {activeTab === 'measurements' && <Measurements measurements={measurements} onSave={handleMeasurementSave} />}
+        {activeTab === 'timer' && <Timer />}
       </div>
     </div>
   )
