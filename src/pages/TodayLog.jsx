@@ -5,8 +5,7 @@ export default function TodayLog({ exercises, logs, onSave }) {
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   const today = new Date()
   const todayName = days[today.getDay()]
-  const todayDateStr = today.toISOString().split('T')[0]
-
+  const todayDateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
   const isRestDay = todayName === 'Wednesday' || todayName === 'Saturday'
   const todayExercises = exercises[todayName] || []
 
