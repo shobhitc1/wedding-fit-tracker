@@ -6,6 +6,7 @@ export default function Timer() {
   const [isRunning, setIsRunning] = useState(false)
   const intervalRef = useRef(null)
   const beepedRef = useRef(false)
+  const audioCtxRef = useRef(null)
 
   useEffect(() => {
     return () => {
@@ -13,9 +14,20 @@ export default function Timer() {
     }
   }, [])
 
+  const unlockAudio = () => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)()
+    }
+    // Play a silent blip to fully unlock audio on iOS
+    if (audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume()
+    }
+  }
+
   const playBeep = () => {
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)()
+      const ctx = audioCtxRef.current
+      if (!ctx) return
       const oscillator = ctx.createOscillator()
       const gainNode = ctx.createGain()
       oscillator.connect(gainNode)
@@ -32,6 +44,7 @@ export default function Timer() {
   }
 
   const startTimer = () => {
+    unlockAudio()
     setIsRunning(true)
     intervalRef.current = setInterval(() => {
       setRemaining(prev => {
