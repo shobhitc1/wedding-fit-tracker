@@ -6,6 +6,7 @@ const START_DATE = new Date(2026, 7, 23) // Sunday, Aug 23, 2026
 const END_DATE = new Date(2026, 10, 25) // Nov 25, 2026 (wedding)
 const DAY_ORDER = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const REST_DAYS = ['Wednesday', 'Saturday']
+const WORKOUT_DAY_ORDER = ['Sunday', 'Monday', 'Tuesday', 'Thursday', 'Friday']
 
 function formatDateStr(date) {
   const year = date.getFullYear()
@@ -13,6 +14,7 @@ function formatDateStr(date) {
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
 }
+
 function formatDayLabel(date) {
   const dayName = DAY_ORDER[date.getDay()]
   const monthDay = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -22,6 +24,7 @@ function formatDayLabel(date) {
 export default function Comparison({ logs, exercises, onLogsChange }) {
   const [editingLog, setEditingLog] = useState(null)
   const [editValues, setEditValues] = useState({})
+  const [selectedGraphDay, setSelectedGraphDay] = useState('Sunday')
 
   // Build list of all weeks from START_DATE to END_DATE
   const allWeeks = useMemo(() => {
@@ -36,7 +39,6 @@ export default function Comparison({ logs, exercises, onLogsChange }) {
     return weeks
   }, [])
 
-  // Default to the week containing today, else week 1
   const defaultWeekIndex = useMemo(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -50,7 +52,6 @@ export default function Comparison({ logs, exercises, onLogsChange }) {
 
   const [selectedWeekIdx, setSelectedWeekIdx] = useState(defaultWeekIndex)
 
-  // Build a lookup of logs by id for fast access
   const logsById = useMemo(() => {
     const map = {}
     logs.forEach(log => {
@@ -59,7 +60,6 @@ export default function Comparison({ logs, exercises, onLogsChange }) {
     return map
   }, [logs])
 
-  // Build the days for the selected week
   const selectedWeekDays = useMemo(() => {
     const week = allWeeks[selectedWeekIdx]
     if (!week) return []
@@ -99,20 +99,27 @@ export default function Comparison({ logs, exercises, onLogsChange }) {
     return days
   }, [allWeeks, selectedWeekIdx, exercises, logsById])
 
-  // Group logs by exercise and week (for graph)
+  // ---- Graph: filtered to selected day of week ----
+  const dayFilteredLogs = useMemo(() => {
+    return logs.filter(log => {
+      const logDate = new Date(log.date + 'T00:00:00')
+      return DAY_ORDER[logDate.getDay()] === selectedGraphDay
+    })
+  }, [logs, selectedGraphDay])
+
   const groupedData = useMemo(() => {
     const grouped = {}
-    logs.forEach(log => {
+    dayFilteredLogs.forEach(log => {
       if (!grouped[log.exerciseName]) grouped[log.exerciseName] = {}
-      const logDate = new Date(log.date)
+      const logDate = new Date(log.date + 'T00:00:00')
       const weekStart = new Date(logDate)
       weekStart.setDate(logDate.getDate() - logDate.getDay())
-      const weekKey = weekStart.toISOString().split('T')[0]
+      const weekKey = formatDateStr(weekStart)
       if (!grouped[log.exerciseName][weekKey]) grouped[log.exerciseName][weekKey] = []
       grouped[log.exerciseName][weekKey].push(log)
     })
     return grouped
-  }, [logs])
+  }, [dayFilteredLogs])
 
   const volumeData = useMemo(() => {
     const data = {}
@@ -177,7 +184,7 @@ export default function Comparison({ logs, exercises, onLogsChange }) {
 
     setEditingLog(null)
     if (onLogsChange) {
-    await onLogsChange()
+      await onLogsChange()
     }
   }
 
@@ -187,9 +194,29 @@ export default function Comparison({ logs, exercises, onLogsChange }) {
     <div className="comparison-page">
       <h1>Your Progress</h1>
 
-      {/* Volume Trend Graph */}
+      {/* Volume Trend Graph - filtered by day */}
       <div className="chart-container">
         <h2>Volume Trend (Weight × Reps)</h2>
+
+        <select
+          value={selectedGraphDay}
+          onChange={(e) => setSelectedGraphDay(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '12px',
+            fontSize: '16px',
+            background: '#1a1a1a',
+            color: '#e0e0e0',
+            border: '0.5px solid #505050',
+            borderRadius: '6px',
+            marginBottom: '16px'
+          }}
+        >
+          {WORKOUT_DAY_ORDER.map(day => (
+            <option key={day} value={day}>{day}</option>
+          ))}
+        </select>
+
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>
@@ -211,13 +238,13 @@ export default function Comparison({ logs, exercises, onLogsChange }) {
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <p className="no-data">No data yet. Start logging your workouts!</p>
+          <p className="no-data">No data yet for {selectedGraphDay}.</p>
         )}
       </div>
 
       {/* Percentage Change Table */}
       <div className="table-container">
-        <h2>Week-over-Week % Change</h2>
+        <h2>Week-over-Week % Change ({selectedGraphDay})</h2>
         {percentageChange.length > 0 ? (
           <table className="data-table">
             <thead>
@@ -291,7 +318,7 @@ export default function Comparison({ logs, exercises, onLogsChange }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {day.rows.map((row, idx) => (
+                  {day.rows.map((row) => (
                     <tr key={row.id}>
                       <td>{row.exerciseName}</td>
                       <td>{row.setNum}</td>
