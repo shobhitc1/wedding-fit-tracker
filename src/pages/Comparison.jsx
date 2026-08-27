@@ -169,8 +169,8 @@ export default function Comparison({ logs, exercises }) {
       date: editingLog.date,
       exerciseName: editingLog.exerciseName,
       setNum: editingLog.setNum,
-      weight: editValues.weight,
-      reps: editValues.reps,
+      weight: parseFloat(editValues.weight) || 0,
+      reps: parseFloat(editValues.reps) || 0,
       done: editingLog.done,
       timestamp: new Date().toISOString()
     })
@@ -322,7 +322,7 @@ export default function Comparison({ logs, exercises }) {
                 <input
                   type="number"
                   value={editValues.weight}
-                  onChange={(e) => setEditValues({ ...editValues, weight: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setEditValues({ ...editValues, weight: e.target.value })}
                   className="modal-input"
                 />
               </label>
@@ -331,7 +331,7 @@ export default function Comparison({ logs, exercises }) {
                 <input
                   type="number"
                   value={editValues.reps}
-                  onChange={(e) => setEditValues({ ...editValues, reps: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setEditValues({ ...editValues, reps: e.target.value })}
                   className="modal-input"
                 />
               </label>
